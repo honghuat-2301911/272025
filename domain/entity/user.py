@@ -21,6 +21,8 @@ class User:
     email: str
     role: str = field(default="user")
     profile_picture: str = field(default="")
+    otp_secret: Optional[str] = field(default=None)
+    otp_enabled: bool = field(default=False)
 
     # --- Getters ---
     def get_id(self):

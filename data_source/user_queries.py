@@ -4,21 +4,39 @@ from data_source.db_connection import get_connection
 from datetime import datetime
 from flask import current_app
 
-def setotpsecret(otp_secret, user_id):
-    """Save OTP secret and enable 2FA for user"""
+def set_otp_secret(otp_secret, user_id):
     try:
         connection = get_connection()
-        cursor = connection.cursor()
+        cursor = connection.cursor(buffered=True)
         cursor.execute(
-            "UPDATE user SET otp_secret=%s, otp_enabled=1 WHERE id=%s",
+            "UPDATE user SET otp_secret=%s WHERE id=%s",
             (otp_secret, user_id)
         )
         connection.commit()
         cursor.close()
+        connection.close()
         return True
     except Exception as e:
         current_app.logger.error(f"Error setting OTP secret: {e}")
         return False
+
+def enable_2fa(user_id):
+    try:
+        connection = get_connection()
+        cursor = connection.cursor(buffered=True)
+        cursor.execute(
+            "UPDATE user SET otp_enabled=1 WHERE id=%s",
+            (user_id,)
+        )
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Error enabling 2FA: {e}")
+        return False
+
+
 
 def update_user_lockout(
     user_id: int,

@@ -180,20 +180,18 @@
         <div class="modal-content">
             <span class="close-modal" id="close2faModalBtn">&times;</span>
             <h3>Enable Two-Factor Authentication</h3>
-            
-            <!-- QR Code Section -->
             <div id="qr2faSection">
                 <p>Scan this QR code with Google Authenticator:</p>
                 <img id="qr2faImg" src="" alt="2FA QR Code" style="margin: 16px auto; display: block; max-width: 200px;">
                 <p id="otpSecretText" style="font-size: small; color: #888;"></p>
+                <input type="text" id="otpCodeInput" placeholder="Enter code from app" />
+                <button id="verify2faBtn" class="btn btn-success">Verify</button>
+                <p id="otpErrorMsg" style="color: red; display: none;"></p>
             </div>
-            
-            <!-- Success Section (hidden initially) -->
             <div id="success2faSection" style="display:none; text-align:center;">
                 <p style="color:green; font-weight:bold;">✅ 2FA Enabled Successfully!</p>
                 <p>You can now log in with your authenticator app</p>
             </div>
-            
             <button id="done2faBtn" style="display:none; margin-top: 16px;">Done</button>
         </div>
     </div>
@@ -366,33 +364,36 @@
             }
         }
 
-        // Modal logic for 2FA Enablement
+        // 2FA modal logic
         const enable2faBtn = document.getElementById('enable2faBtn');
         const enable2faModal = document.getElementById('enable2faModal');
         const close2faModalBtn = document.getElementById('close2faModalBtn');
-        let pollingInterval = null;  // Track polling state
+        const qr2faImg = document.getElementById('qr2faImg');
+        const otpSecretText = document.getElementById('otpSecretText');
+        const otpCodeInput = document.getElementById('otpCodeInput');
+        const verify2faBtn = document.getElementById('verify2faBtn');
+        const otpErrorMsg = document.getElementById('otpErrorMsg');
+        const qr2faSection = document.getElementById('qr2faSection');
+        const success2faSection = document.getElementById('success2faSection');
+        const done2faBtn = document.getElementById('done2faBtn');
 
         if (enable2faBtn) {
             enable2faBtn.onclick = function() {
                 enable2faModal.style.display = 'block';
-                
-                // Reset modal state
-                document.getElementById('qr2faSection').style.display = 'block';
-                document.getElementById('success2faSection').style.display = 'none';
-                document.getElementById('done2faBtn').style.display = 'none';
-                
-                // Fetch QR code from backend
-                fetch('/profile/generate-otp', {method: 'POST'})
+                qr2faSection.style.display = 'block';
+                success2faSection.style.display = 'none';
+                done2faBtn.style.display = 'none';
+                otpErrorMsg.style.display = 'none';
+                fetch('/profile/generate_otp', {method: 'POST'})
                     .then(response => response.json())
                     .then(data => {
-                        document.getElementById('qr2faImg').src = data.qr;
-                        document.getElementById('otpSecretText').textContent = "Secret: " + data.secret;
-                        // Start polling for OTP status
-                        startPolling();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching OTP:', error);
-                        alert('Failed to generate OTP setup. Please try again.');
+                        if (data.status === 'success') {
+                            qr2faImg.src = data.qr;
+                            otpSecretText.textContent = "Secret: " + data.secret;
+                        } else {
+                            otpSecretText.textContent = data.message || "Failed to generate OTP";
+                            qr2faImg.src = "";
+                        }
                     });
             };
         }
@@ -400,53 +401,38 @@
         if (close2faModalBtn) {
             close2faModalBtn.onclick = function() {
                 enable2faModal.style.display = 'none';
-                stopPolling();  // Stop polling when modal closes
             };
         }
 
-        // Add to existing window.onclick handler
-        window.onclick = function(event) {
-            // ... your existing conditions ...
-            if (event.target == enable2faModal) {
-                enable2faModal.style.display = 'none';
-                stopPolling();  // Stop polling when clicking outside
+        verify2faBtn.onclick = function() {
+            const otpCode = otpCodeInput.value.trim();
+            if (!otpCode) {
+                otpErrorMsg.textContent = "Please enter the code from your app.";
+                otpErrorMsg.style.display = 'block';
+                return;
             }
+            fetch('/profile/verify_otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({otp_code: otpCode})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    qr2faSection.style.display = 'none';
+                    success2faSection.style.display = 'block';
+                    done2faBtn.style.display = 'inline-block';
+                } else {
+                    otpErrorMsg.textContent = data.message || "Verification failed.";
+                    otpErrorMsg.style.display = 'block';
+                }
+            });
         };
 
-        // Start polling with cleanup
-        function startPolling() {
-            stopPolling();  // Clear any existing polling
-            pollOtpStatus();
-        }
-
-        function stopPolling() {
-            if (pollingInterval) {
-                clearTimeout(pollingInterval);
-                pollingInterval = null;
-            }
-        }
-
-        // Polling function to check OTP status
-        function pollOtpStatus() {
-            fetch('/profile/check-otp-status')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.otp_enabled) {
-                        // Show success message and hide QR
-                        document.getElementById('qr2faSection').style.display = 'none';
-                        document.getElementById('success2faSection').style.display = 'block';
-                        document.getElementById('done2faBtn').style.display = 'inline-block';
-                        stopPolling();  // Stop when enabled
-                    } else {
-                        // Continue polling every 2 seconds
-                        pollingInterval = setTimeout(pollOtpStatus, 2000);
-                    }
-                })
-                .catch(error => {
-                    console.error('Polling error:', error);
-                    pollingInterval = setTimeout(pollOtpStatus, 2000);
-                });
-        }
+        done2faBtn.onclick = function() {
+            enable2faModal.style.display = 'none';
+            window.location.reload();
+        }; 
 
         // Done button handler
         document.getElementById('done2faBtn').onclick = function() {
