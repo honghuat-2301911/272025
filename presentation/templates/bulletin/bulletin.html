@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulletin Board</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulletin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="bulletin-container">
+        {% if error %}
+            <div class="error-message" style="color: black; text-align: center; margin-top: 20px;">
+            {{ error }}
+            </div>
+        {% elif query %}
+            <div class="search-message" style="color: black; text-align: center; margin-top: 20px;">
+            Showing results for "{{ query }}"
+            </div>
+        {% endif %}
+        <div class="search-bar" style="text-align: center; margin-bottom: 20px;">
+            <form method="post" action="{{ url_for('bulletin.bulletin_page') }}">
+                <input type="text" name="query" placeholder="Search activities...">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div class="filter-bar" style="text-align: center; margin-bottom: 20px;">
+        <form method="POST" action="{{ url_for('bulletin.filtered_bulletin') }}">
+            <label>
+                <input type="checkbox" name="sports_checkbox" checked> Sports
+            </label>
+            <label>
+                <input type="checkbox" name="non_sports_checkbox" checked> Non Sports
+            </label>
+            <button type="submit">Filter</button>
+        </form>
+        </div>
+
+
+        <div class="host-activity-container" style="text-align: center; margin-bottom: 20px;">
+            <button onclick="openHostModal()" class="bulletin-btn">Host Activity</button>
+        </div>
+        <div class="grid-container">
+            {% for b in bulletin_list %}
+                <div class="card" onclick="openModal('{{ loop.index0 }}')">
+                    <h3>{{ b.activity_name }}</h3>
+                </div>
+
+                <!-- Hidden modal content -->
+                <div id="modal-data-{{ loop.index0 }}" data-activity-id="{{ b.id }}" style="display: none;">
+                    <h2>{{ b.activity_name }}</h2>
+                    <p><strong>Type:</strong> {{ b.activity_type }}</p>
+                    <p><strong>Location:</strong> {{ b.location }}</p>
+                    <p><strong>Date:</strong> {{ b.date }}</p>
+                    <p><strong>Required Skills:</strong> {{ b.skills_req }}</p>
+                    <p><strong>Max Participants:</strong> {{ b.max_pax }}</p>
+                </div>
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <!-- Global modal -->
+    <div id="bulletinModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+            <!-- <form id="joinForm" method="POST" action="{{ url_for('bulletin.join_activity') }}">
+                <input type="hidden" name="activity_id" id="activityIdInput">
+                <button type="submit" class="bulletin-btn" style="margin-top: 20px;">Join</button>
+            </form> -->
+            <form id="joinForm" method="POST" action="{{ url_for('bulletin.join_activity') }}">
+                <input type="hidden" name="activity_id" id="activityIdInput">
+                <button type="submit" class="bulletin-btn" style="margin-top: 20px;">Join</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="hostModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeHostModal()">&times;</span>
+        <h2>Host New Activity</h2>
+        <form method="POST" action="{{ url_for('bulletin.host_activity') }}">
+            <div>
+                <label for="activityNameInput">Activity Name:</label>
+                <input type="text" id="activityNameInput" name="activity_name" placeholder="Activity Name" required>
+            </div>
+            <div>
+                <label for="activityTypeInput">Type:</label>
+                <select id="activityTypeInput" name="activity_type" required>
+                    <option value="" disabled selected>Select Activity Type</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Non Sports">Non Sports</option>
+                </select>
+            </div>
+            <div>
+                <label for="skillsReqInput">Required Skills:</label>
+                <input type="text" id="skillsReqInput" name="skills_req" placeholder="Required Skills" required>
+            </div>
+            <div>
+                <label for="dateInput">Date:</label>
+                <input type="datetime-local" id="dateInput" name="date" required>
+            </div>
+            <div>
+                <label for="locationInput">Location:</label>
+                <input type="text" id="locationInput" name="location" placeholder="Location" required>
+            </div>
+            <div>
+                <label for="maxPaxInput">Max Participants:</label>
+                <input type="number" id="maxPaxInput" name="max_pax" min="1" value="1" required>
+            </div>
+            <button type="submit" class="bulletin-btn">Host</button>
+        </form>
+    </div>
+    </div>
+
+
+    <script>
+        function openModal(index) {
+            const data = document.getElementById(`modal-data-${index}`);
+            const modal = document.getElementById("bulletinModal");
+            const modalBody = document.getElementById("modalBody");
+            const activityIdInput = document.getElementById("activityIdInput");
+
+            modalBody.innerHTML = data.innerHTML;
+            activityIdInput.value = data.dataset.activityId;  // pulled from data attribute
+            modal.style.display = "block";
+        }
+
+
+        function closeModal() {
+            document.getElementById("bulletinModal").style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById("bulletinModal");
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+
+        function openHostModal() {
+            document.getElementById("hostModal").style.display = "block";
+        }
+
+        function closeHostModal() {
+            document.getElementById("hostModal").style.display = "none";
+        }
+
+    </script>
+</body>
+</html> 

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Feed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/social_feed.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="layout-3col" style="gap: 0;">
+        <!-- Center Feed -->
+        <div class="feed-main-col">
+            {% if filtered_post_id %}
+            <div class="filter-indicator" style="background: #fff3f3; border: 2px solid #ff5858; border-radius: 12px; padding: 12px; margin-bottom: 16px; text-align: center;">
+                <span style="color: #ff5858; font-weight: 600;">Showing filtered post</span>
+                <button onclick="clearFilter()" style="background: #ff5858; color: white; border: none; border-radius: 8px; padding: 4px 12px; margin-left: 12px; cursor: pointer; font-size: 0.9em;">Show All</button>
+            </div>
+            {% endif %}
+            {% if filtered_user_id %}
+            <div class="filter-indicator" style="background: #fff3f3; border: 2px solid #ff5858; border-radius: 12px; padding: 12px; margin-bottom: 16px; text-align: center;">
+                <span style="color: #ff5858; font-weight: 600;">Showing posts by {{ filtered_user_name or 'User' }}</span>
+                <button onclick="clearFilter()" style="background: #ff5858; color: white; border: none; border-radius: 8px; padding: 4px 12px; margin-left: 12px; cursor: pointer; font-size: 0.9em;">Show All</button>
+            </div>
+            {% endif %}
+            {% if filtered_user_id %}
+            <div class="searched-user-banner" style="display:flex;align-items:center;gap:16px;margin-bottom:24px;background:#fff;padding:16px 20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                <img src="{{ filtered_user_profile_picture or url_for('static', filename='icons/user.png') }}" alt="Profile Picture" style="width:56px;height:56px;border-radius:50%;object-fit:cover;background:#fff;">
+                <div>
+                    <div style="font-size:1.2em;font-weight:600;">{{ filtered_user_name }}</div>
+                    <div style="color:#888;font-size:0.95em;">Viewing posts by this user</div>
+                </div>
+            </div>
+            {% endif %}
+            <!-- Post Composer -->
+            <div class="social-card post-composer">
+                <form method="post" action="{{ url_for('social_feed.create_post') }}" enctype="multipart/form-data">
+                    <div class="post-header">
+                        <img src="{{ current_user.profile_picture or url_for('static', filename='icons/user.png') }}" class="avatar" style="width:40px;height:40px;border-radius:50%;object-fit:cover;background:#fff;" alt="Profile Picture">
+                        <textarea name="content" placeholder="Share something with your buddies..." required></textarea>
+                    </div>
+                    <div id="image-preview-container" class="image-preview-container" style="display:none;">
+                        <button type="button" class="remove-image-btn" onclick="removeImagePreview()">&times;</button>
+                        <img id="image-preview" src="" alt="Image preview" />
+                    </div>
+                    <div class="composer-divider"></div>
+                    <div class="post-footer">
+                        <input type="file" name="image" id="image-upload" class="file-upload" style="display:none;" accept="image/*" onchange="previewImage(event)">
+                        <label for="image-upload" class="upload-btn" style="cursor:pointer; display:inline-flex; align-items:center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-paperclip">
+                                <path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l10-10a3 3 0 0 1 4.24 4.24l-10 10a1 1 0 0 1-1.41-1.41l9.19-9.19"/>
+                            </svg>
+                        </label>
+                        <button type="submit" class="post-btn">Post</button>
+                    </div>
+                </form>
+            </div>
+            <!-- Feed -->
+            {% for post in posts %}
+            <div class="social-card post">
+                <div class="post-header">
+                    <img src="{{ post.profile_picture or url_for('static', filename='icons/user.png') }}" class="avatar" style="width:40px;height:40px;border-radius:50%;object-fit:cover;background:#fff;" alt="Profile Picture">
+                    <div class="user-info">
+                        <span class="username">{{ post.user }}</span>
+                        <!-- No post time -->
+                    </div>
+                </div>
+                <div class="post-content">{{ post.content }}</div>
+                {% if post.image_url %}
+                <div class="post-image">
+                    <img src="{{ post.image_url }}" alt="Post image" onclick="expandImage('{{ post.image_url }}')">
+                </div>
+                {% endif %}
+                <div class="post-stats">
+                    <div class="stat-item comment-button" onclick="toggleComments('{{ post.id }}')">
+                        <span class="comment-icon"></span>
+                        <span class="stat-count">{{ post.comments|length }}</span>
+                    </div>                
+                    <div class="stat-item like-button" onclick="toggleLike('{{ post.id }}', this)">
+                        <span class="heart-icon"></span>
+                        <span class="stat-count">{{ post.likes }}</span>
+                    </div>                
+                </div>
+                <!-- Comments Section -->
+                <div id="comments-{{ post.id }}" class="comments-section" style="display: none;">
+                    <div class="comments-list">
+                        {% for comment in post.comments %}
+                        <div class="comment">
+                            <div class="comment-avatar">{{ comment.user[0]|upper }}</div>
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <span class="comment-username">{{ comment.user }}</span>
+                                    <!-- No comment time -->
+                                </div>
+                                <div class="comment-text">{{ comment.content }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Add Comment Form -->
+                    <form method="post" action="{{ url_for('social_feed.create_comment', post_id=post.id) }}" class="comment-form">
+                        <div class="comment-input-container">
+                            <img src="{{ current_user.profile_picture or url_for('static', filename='icons/user.png') }}" class="comment-avatar" style="width:32px;height:32px;border-radius:50%;object-fit:cover;background:#fff;" alt="Profile Picture">
+                            <input type="text" name="comment" placeholder="Write a comment..." required class="comment-input">
+                            <button type="submit" class="comment-submit">Post</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <!-- Right Sidebar -->
+        <aside class="feed-sidebar" style="margin-left: 0;">
+            <!-- Search Bar -->
+            <div class="feed-search-bar">
+                <div class="search-bar-container">
+                    <div class="search-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                    </div>
+                    <input type="text" id="userSearchInput" class="search-input" placeholder="Search users..." autocomplete="off">
+                </div>
+                <div id="userSearchResults" class="search-results" style="display: none;"></div>
+            </div>
+            <!-- Featured Posts Block -->
+            <div class="featured-posts-sidebar">
+                <h3 class="featured-title">Featured</h3>
+                {% for post in featured_posts %}
+                <div class="featured-post-card" onclick="filterToPost('{{ post.id }}')" style="cursor: pointer;">
+                    <img src="{{ post.profile_picture or url_for('static', filename='icons/user.png') }}" class="avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;font-size:1em;background:#fff;" alt="Profile Picture">
+                    <div class="featured-post-content">
+                        <div class="featured-post-title">{{ post.content[:40] }}{% if post.content|length > 40 %}...{% endif %}</div>
+                        <div class="featured-post-meta">by {{ post.user }} · {{ post.likes }} likes</div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% if filtered_post_id %}
+                <div class="featured-post-card" onclick="clearFilter()" style="cursor: pointer; background: #f0f0f0; border: 2px solid #ff5858;">
+                    <div class="featured-post-content">
+                        <div class="featured-post-title" style="color: #ff5858; font-weight: 600;">← Show All Posts</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+    <!-- Image Modal for Expansion -->
+    <div id="imageModal" class="modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;">
+        <span class="close-modal" onclick="closeImageModal()" style="position:absolute;top:32px;right:48px;font-size:2.5em;color:#fff;cursor:pointer;z-index:10001;">&times;</span>
+        <img id="modalImage" src="" alt="Expanded image" style="max-width:90vw;max-height:80vh;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+    </div>
+    <script>
+        // Helper to get liked posts from localStorage
+        function getLikedPosts() {
+            return JSON.parse(localStorage.getItem('likedPosts') || '[]');
+        }
+        // Helper to set liked posts in localStorage
+        function setLikedPosts(arr) {
+            localStorage.setItem('likedPosts', JSON.stringify(arr));
+        }
+        function toggleLike(postId, el) {
+            const heart = el.querySelector('.heart-icon');
+            const countSpan = el.querySelector('.stat-count');
+            let count = parseInt(countSpan.textContent);
+            let likedPosts = getLikedPosts();
+            if (!heart.classList.contains('liked')) {
+                // Like
+                fetch(`/feed/like/${postId}`, {method: 'POST'})
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            countSpan.textContent = count + 1;
+                            heart.classList.add('liked');
+                            if (!likedPosts.includes(postId)) {
+                                likedPosts.push(postId);
+                                setLikedPosts(likedPosts);
+                            }
+                        }
+                    });
+            } else {
+                // Unlike
+                fetch(`/feed/unlike/${postId}`, {method: 'POST'})
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            countSpan.textContent = Math.max(count - 1, 0);
+                            heart.classList.remove('liked');
+                            likedPosts = likedPosts.filter(id => id !== postId);
+                            setLikedPosts(likedPosts);
+                        }
+                    });
+            }
+        }
+        // On page load, set liked state
+        window.addEventListener('DOMContentLoaded', function() {
+            const likedPosts = getLikedPosts();
+            likedPosts.forEach(function(postId) {
+                const likeBtn = document.querySelector(`.like-button[onclick*='${postId}']`);
+                if (likeBtn) {
+                    const heart = likeBtn.querySelector('.heart-icon');
+                    if (heart) heart.classList.add('liked');
+                }
+            });
+        });
+    </script>
+    <script>
+        function commentClick(el) {
+          const icon = el.querySelector('.comment-icon');
+          icon.classList.add('clicked');
+          setTimeout(() => icon.classList.remove('clicked'), 200);
+        }
+    </script>
+    <script>
+        function toggleComments(postId) {
+            const commentsSection = document.getElementById(`comments-${postId}`);
+            if (commentsSection.style.display === 'none') {
+                commentsSection.style.display = 'block';
+            } else {
+                commentsSection.style.display = 'none';
+            }
+        }
+    </script>
+    <script>
+        function previewImage(event) {
+            const input = event.target;
+            const previewContainer = document.getElementById('image-preview-container');
+            const preview = document.getElementById('image-preview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        function removeImagePreview() {
+            const previewContainer = document.getElementById('image-preview-container');
+            const preview = document.getElementById('image-preview');
+            const fileInput = document.getElementById('image-upload');
+            preview.src = '';
+            previewContainer.style.display = 'none';
+            fileInput.value = '';
+        }
+    </script>
+    <script>
+    function expandImage(url) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        modalImg.src = url;
+        modal.style.display = 'flex';
+    }
+    function closeImageModal() {
+        document.getElementById('imageModal').style.display = 'none';
+    }
+    // Optional: Close modal on background click
+    window.onclick = function(event) {
+        const modal = document.getElementById('imageModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+    </script>
+    <script>
+        function filterToPost(postId) {
+            // Navigate to the filtered post view
+            window.location.href = `/feed/post/${postId}`;
+        }
+        
+        function clearFilter() {
+            // Navigate back to the main feed
+            window.location.href = '/feed/';
+        }
+    </script>
+    <script>
+        // User Search Functionality
+        let searchTimeout;
+        const searchInput = document.getElementById('userSearchInput');
+        const searchResults = document.getElementById('userSearchResults');
+        
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            // Clear previous timeout
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            // Debounce the search
+            searchTimeout = setTimeout(() => {
+                searchUsers(query);
+            }, 300);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+        
+        function searchUsers(query) {
+            fetch(`/feed/search-users?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(users => {
+                    displaySearchResults(users);
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                });
+        }
+        
+        function displaySearchResults(users) {
+            if (users.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            searchResults.innerHTML = '';
+            
+            users.forEach(user => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.onclick = () => selectUser(user);
+                
+                resultItem.innerHTML = `
+                    <img src="${user.profile_picture || '/static/icons/user.png'}" alt="Profile" style="width:32px;height:32px;border-radius:50%;object-fit:cover;background:#fff;vertical-align:middle;margin-right:8px;">
+                    <div class="user-info" style="display:inline-block;vertical-align:middle;">
+                        <div class="user-name">${user.name}</div>
+                        <div class="user-email" style="color:#888;font-size:0.9em;">${user.email}</div>
+                    </div>
+                `;
+                searchResults.appendChild(resultItem);
+            });
+            searchResults.style.display = 'block';
+        }
+        
+        function selectUser(user) {
+            // Filter posts to show only posts by this user
+            window.location.href = `/feed/user/${user.id}`;
+        }
+    </script>
+</body>
+</html>

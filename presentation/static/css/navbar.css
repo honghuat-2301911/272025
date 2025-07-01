@@ -1,0 +1,91 @@
+.navbar {
+  width: 100%;
+  background: #ff5858;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+  height: 64px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  border-bottom: 1px solid white;
+  box-shadow: none;
+}
+.navbar-left {
+  display: flex;
+  align-items: center;
+  margin-right: 0%;
+}
+.logo {
+  height: 40px;
+  margin-right: 16px;
+  border-radius: 50%;
+  background: #fff;
+}
+.brand {
+  font-size: 1.3em;
+  color: white;
+  letter-spacing: 1px;
+}
+.navbar-links {
+  list-style: none;
+  display: flex;
+  gap: 200px;
+  margin-right: 15%;
+  padding: 0;
+  justify-content: center;
+  flex: 1;
+  min-width: 220px; /* or adjust as needed */
+}
+.navbar-links li {
+  display: flex;
+  align-items: center;
+}
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1em;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+.navbar-links a:hover, .navbar-links a:focus {
+  background: whitesmoke;
+  color: #23272a;
+}
+.logout-btn {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1em;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+}
+.logout-btn:hover, .logout-btn:focus {
+  background: whitesmoke;
+  color: #23272a;
+  text-decoration: none;
+}
+@media (max-width: 700px) {
+  .navbar {
+      flex-direction: column;
+      height: auto;
+      padding: 12px 8px;
+  }
+  .navbar-left {
+      margin-bottom: 8px;
+  }
+  .navbar-links {
+      gap: 16px;
+  }
+}
+body {
+  padding-top: 70px;
+}

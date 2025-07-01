@@ -1,0 +1,17 @@
+<!-- templates/navbar.html -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <img src="{{ url_for('static', filename='icons/logo.png') }}" alt="logo" class="logo">
+    <span class="brand"><strong>SIT SPORTS BUDDY</strong></span>
+  </div>
+  <ul class="navbar-links">
+    <li><a href="{{ url_for('bulletin.bulletin_page') }}">Bulletin</a></li>
+    <li><a href="{{ url_for('social_feed.feed') }}">Social Feed</a></li>
+    <li><a href="{{ url_for('profile_bp.fetchProfile') }}">Profile</a></li>
+  </ul>
+  <div class="navbar-right">
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('login.logout') }}" class="logout-btn">Logout</a>
+    {% endif %}
+  </div>
+</nav>
