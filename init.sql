@@ -119,14 +119,26 @@ CREATE TABLE IF NOT EXISTS `mydb`.`user` (
   `email` VARCHAR(225) NOT NULL,
   `role` VARCHAR(45) NOT NULL,
   `profile_picture` VARCHAR(255) NULL,
-  `failed_attempts` INT NOT NULL DEFAULT 0,
-  `last_failed_login` DATETIME NULL,
   `locked_until` DATETIME NULL,
   `otp_secret` VARCHAR(32) NULL,
   `otp_enabled` BOOLEAN NOT NULL DEFAULT FALSE,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
   UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE
+) ENGINE = InnoDB;
+
+-- USER FAILED LOGIN TABLE
+CREATE TABLE IF NOT EXISTS `mydb`.`user_failed_login` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `user_id` INT NOT NULL,
+    `failed_at` DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_user_failed_login_user_id` (`user_id`),
+    CONSTRAINT `fk_user_failed_login_user`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `mydb`.`user` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE NO ACTION
 ) ENGINE = InnoDB;
 
 -- SPORTS ACTIVITY

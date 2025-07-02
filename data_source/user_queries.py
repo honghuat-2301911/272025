@@ -36,34 +36,68 @@ def enable_2fa(user_id):
         current_app.logger.error(f"Error enabling 2FA: {e}")
         return False
 
-
-
-def update_user_lockout(
-    user_id: int,
-    failed_attempts: int,
-    last_failed_login: datetime = None,
-    locked_until: datetime = None
-):
+# Account Lock out Code
+def record_failed_login(user_id):
+    """Insert a failed login record for the user."""
     connection = get_connection()
     cursor = connection.cursor()
-    try:
-        sql = """
-        UPDATE user SET failed_attempts = %s, last_failed_login = %s,locked_until = %s WHERE id = %s"""
+    now = datetime.now(UTC_PLUS_8).replace(tzinfo=None)
+    cursor.execute(
+        "INSERT INTO user_failed_login (user_id, failed_at) VALUES (%s, %s)",
+        (user_id, now)
+    )
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-        cursor.execute(sql, (
-            failed_attempts,
-            last_failed_login,
-            locked_until,
-            user_id
-        ))
+def get_user_failed_attempts_count(user_id, window_minutes=10):
+    """Count failed logins for user in the last window_minutes."""
+    connection = get_connection()
+    cursor = connection.cursor()
+    window_start = datetime.now(UTC_PLUS_8) - timedelta(minutes=window_minutes)
+    window_start = window_start.replace(tzinfo=None)
+    cursor.execute(
+        "SELECT COUNT(*) FROM user_failed_login WHERE user_id=%s AND failed_at >= %s",
+        (user_id, window_start)
+    )
+    count = cursor.fetchone()[0]
+    cursor.close()
+    connection.close()
+    return count
+
+def update_user_lockout(user_id, locked_until):
+    """
+    Update the locked_until field in the user table.
+    Args:
+        user_id (int): The user's ID.
+        locked_until (datetime or None): The datetime until which the account is locked, or None to unlock.
+    """
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute(
+            "UPDATE user SET locked_until=%s WHERE id=%s",
+            (locked_until, user_id)
+        )
         connection.commit()
-    except Exception as e:
-        current_app.logger.error(f"Failed to update lockout fields: {e}")
-        raise
-    finally:
         cursor.close()
         connection.close()
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Error updating locked_until: {e}")
+        return False
 
+def clear_failed_logins(user_id):
+    """Delete all failed login records for the user."""
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        "DELETE FROM user_failed_login WHERE user_id=%s",
+        (user_id,)
+    )
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 def get_user_by_email(email: str):
     connection = get_connection()
