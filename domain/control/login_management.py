@@ -80,6 +80,21 @@ def login_user(email: str, password: str):
     flask_login_user(user)
     return user
 
+# Get generate OTP
+def verify_user_otp(user, otp_code):
+    """
+    Verifies the OTP code for the user.
+    Args:
+        user (User): The user object
+        otp_code (str): The OTP code entered by the user
+    Returns:
+        bool: True if valid, False otherwise
+    """
+    if not user.otp_secret:
+        return False
+    totp = pyotp.TOTP(user.otp_secret)
+    return totp.verify(otp_code)
+
 
 def logout_user():
     """Log out the current user using flask_login"""
