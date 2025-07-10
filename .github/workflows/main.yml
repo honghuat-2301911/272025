@@ -4,6 +4,9 @@ permissions:
   contents: write  # Needed to push back to PR branch asd
 
 on:
+  push:
+      branches:
+      - main
   pull_request:
     branches:
       - main
