@@ -1,9 +1,8 @@
 import bcrypt
 
-"""Hash plaintext password using bcrypt"""
-
 
 def hash_password(plain_text_password: str) -> str:
+    """Hash plaintext password using bcrypt."""
     # Generate a salt
     salt = bcrypt.gensalt()
     # Hash the password (result is in bytes)
@@ -12,10 +11,8 @@ def hash_password(plain_text_password: str) -> str:
     return hashed.decode("utf-8")
 
 
-"""Check if a plaintext password matches the given bcrypt hash"""
-
-
 def check_password(plain_text_password: str, hashed_password: str) -> bool:
+    """Check if a plaintext password matches the given bcrypt hash."""
     return bcrypt.checkpw(
         plain_text_password.encode("utf-8"), hashed_password.encode("utf-8")
     )

@@ -1,6 +1,15 @@
 from flask import g
+from flask_login import current_user
 
-from data_source.bulletin_queries import *
+from data_source.bulletin_queries import (
+    get_all_bulletin,
+    get_bulletin_by_types,
+    get_bulletin_via_name,
+    get_host_id,
+    get_sports_activity_by_id,
+    insert_new_activity,
+    update_sports_activity,
+)
 from domain.entity.sports_activity import SportsActivity
 
 
@@ -39,6 +48,11 @@ def get_bulletin_listing():
     return bulletin_list
 
 
+def get_host_name(activity_id):
+    user_id = get_host_id(activity_id).get("user_id")
+    return int(user_id) == int(current_user.id) if user_id else False
+
+
 def get_bulletin_display_data():
     bulletin_list = g.get("bulletin_list")
     if not bulletin_list:
@@ -55,6 +69,21 @@ def get_bulletin_display_data():
                 "date": activity.get_date(),
                 "location": activity.get_location(),
                 "max_pax": activity.get_max_pax(),
+                "count": int(activity.get_max_pax())
+                - len(
+                    [
+                        uid
+                        for uid in (activity.get_user_id_list_join() or "").split(",")
+                        if uid.strip()
+                    ]
+                ),
+                "host_by_current_user": activity.get_user_id() == current_user.id,
+                # "who_joined": [
+                #     get_username_by_id(uid.strip()).get("name")
+                #     for uid in (activity.get_user_id_list_join() or "").split(",")
+                #     if uid.strip()
+                # ] if activity.get_user_id() == current_user.id else None,
+                #
             }
         )
 

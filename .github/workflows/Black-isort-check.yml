@@ -1,29 +1,46 @@
-name: Format check using black,isort
+name: Format and Auto-Fix with Black and Isort
+
+permissions:
+  contents: write  # Needed to push back to PR branch
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-  pull_request:
 
 jobs:
-  Format-typecheck:
+  format-and-fix:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install black
+          pip install black isort
 
-      # Use isort to check if imports are formatted properly
-      - name: Check import sorting with isort
-        uses: isort/isort-action@v1
-        with:
-          configuration: "--profile black --check-only --diff"
+      - name: Run isort (auto-fix)
+        run: isort . --profile black
 
-      # Use Black to check the format of python codes
-      - name: Check code formatting with Black
-        run: black --check .
+      - name: Run black (auto-fix)
+        run: black .
+
+      - name: Commit and push changes if any
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add .
+            git commit -m "chore: auto-format code with black and isort"
+            git push
+          else
+            echo "No formatting changes to commit."
+          fi

@@ -22,7 +22,6 @@ def get_social_post_by_id(post_id: int):
     return post
 
 
-
 def delete_social_post(post_id: int):
     connection = get_connection()
     cursor = connection.cursor()

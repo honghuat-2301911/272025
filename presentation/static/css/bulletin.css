@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
     padding: 0;
@@ -18,8 +17,8 @@ body {
 }
 .grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 32px;
+    grid-template-columns: repeat(2, 1fr); /* always 2 */
+    gap: 24px;
     padding: 32px 0;
 }
 .card {
@@ -28,21 +27,47 @@ body {
     box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     padding: 32px 18px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
     font-weight: 600;
     font-size: 1.1rem;
     color: #23272a;
     cursor: pointer;
     transition: box-shadow 0.2s, transform 0.2s;
     border: 1px solid #fca5a5;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 .card:hover {
     box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
     transform: translateY(-4px) scale(1.04);
     background: #fff;
 }
+.card h3 {
+  width: 100%;
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  color: #b91c1c;
+  overflow-wrap: break-word;
+}
+.card p {
+  font-weight: normal;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  line-height: 1.4;
+  text-align: left;
+  width: 100%;
+  word-break: break-word;
+}
+
+.card p strong {
+  display: inline-block;
+  min-width: 90px;
+}
+
+
 .search-bar input[type="text"] {
     padding: 10px 16px;
     border-radius: 8px;
@@ -136,7 +161,7 @@ body {
     align-items: stretch;
     animation: slideUp 0.3s;
 }
-.close {
+.close, .close-modal {
     position: absolute;
     top: 14px;
     right: 20px;
@@ -145,24 +170,61 @@ body {
     cursor: pointer;
     font-weight: bold;
     transition: color 0.2s;
+    background: none;
+    border: none;
+    box-shadow: none;
+    outline: none;
 }
-.close:hover {
+.close:hover, .close-modal:hover {
     color: #ff5858;
 }
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
 }
+.flash-message {
+    padding: 16px 18px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 1.08em;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.08);
+    background: #fff7f7;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+.flash-message.success {
+    background: #e6f9f0;
+    color: #15803d;
+    border: 1px solid #6ee7b7;
+}
+.flash-message.error {
+    background: #fff7f7;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
 .modal-content h2, .modal-content h3 {
     color: #ff5858;
     margin-bottom: 18px;
     font-weight: 700;
     text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    font-size: 1.2rem;
+    line-height: 1.4;
+    max-width: 100%;
 }
 .modal-content p {
     color: #23272a;
     font-size: 1.05rem;
     margin-bottom: 10px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    text-align: center;
+    line-height: 1.4;
+    max-width: 100%;
 }
 .modal-content button.bulletin-btn {
     margin-top: 18px;
@@ -202,9 +264,8 @@ body {
     .modal-content { padding: 10px 2px; }
 }
 @media (max-width: 600px) {
-    .modal-content {
-        padding: 16px 4px 16px 4px;
-        max-width: 98vw;
+    .grid-container {
+        grid-template-columns: 1fr;
     }
 }
 .bulletin-header { text-align: center; margin-bottom: 30px; }

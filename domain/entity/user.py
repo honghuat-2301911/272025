@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Optional
 
 
@@ -21,8 +22,11 @@ class User:
     email: str
     role: str = field(default="user")
     profile_picture: str = field(default="")
+    locked_until: Optional[datetime] = field(default=None)
     otp_secret: Optional[str] = field(default=None)
     otp_enabled: bool = field(default=False)
+    current_session_token: Optional[str] = field(default=None)
+    email_verified: bool = field(default=False)
 
     # --- Getters ---
     def get_id(self):
@@ -42,6 +46,21 @@ class User:
 
     def get_profile_picture(self) -> str:
         return self.profile_picture
+
+    def get_locked_until(self) -> Optional[datetime]:
+        return self.locked_until
+
+    def get_otp_secret(self) -> Optional[str]:
+        return self.otp_secret
+
+    def get_otp_enabled(self) -> bool:
+        return self.otp_enabled
+
+    def get_current_session_token(self) -> Optional[str]:
+        return self.current_session_token
+
+    def get_email_verified(self) -> bool:
+        return self.email_verified
 
     @property
     def is_authenticated(self):
@@ -70,3 +89,18 @@ class User:
 
     def set_profile_picture(self, profile_picture: str) -> None:
         self.profile_picture = profile_picture
+
+    def set_locked_until(self, locked_until: Optional[datetime]) -> None:
+        self.locked_until = locked_until
+
+    def set_otp_secret(self, otp_secret: Optional[str]) -> None:
+        self.otp_secret = otp_secret
+
+    def set_otp_enabled(self, otp_enabled: bool) -> None:
+        self.otp_enabled = otp_enabled
+
+    def set_current_session_token(self, token: Optional[str]) -> None:
+        self.current_session_token = token
+
+    def set_email_verified(self, email_verified: bool) -> None:
+        self.email_verified = email_verified

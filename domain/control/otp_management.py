@@ -1,8 +1,12 @@
+import base64
+import io
+
 import pyotp
 import pyqrcode
-import io
-import base64
-from data_source.user_queries import set_otp_secret, get_user_by_id, enable_2fa
+from flask import current_app
+
+from data_source.user_queries import enable_2fa, get_user_by_id, set_otp_secret
+
 
 def generate_otp_for_user(user_id):
     user = get_user_by_id(user_id)
@@ -11,11 +15,13 @@ def generate_otp_for_user(user_id):
 
     otp_secret = pyotp.random_base32()
     if not set_otp_secret(otp_secret, user_id):
+        current_app.logger.warning(
+            f"Failed to update user {user['email']} with OTP secret"
+        )
         return None, "Failed to update user with OTP secret"
 
     uri = pyotp.totp.TOTP(otp_secret).provisioning_uri(
-        name=user["email"],
-        issuer_name="BuddiesFinders"
+        name=user["email"], issuer_name="BuddiesFinders"
     )
     qr = pyqrcode.create(uri)
     buffer = io.BytesIO()
@@ -25,6 +31,7 @@ def generate_otp_for_user(user_id):
 
     return {"qr": qr_data_url, "secret": otp_secret}, None
 
+
 def verify_and_enable_otp(user_id, otp_code):
     user = get_user_by_id(user_id)
     if not user or not user.get("otp_secret"):
@@ -33,6 +40,8 @@ def verify_and_enable_otp(user_id, otp_code):
     if totp.verify(otp_code):
         if enable_2fa(user_id):
             return True, None
-        else:
-            return False, "Failed to enable 2FA"
+        current_app.logger.warning(
+            f"User {user_id} failed to enable 2 factor authentication"
+        )
+        return False, "Failed to enable 2FA"
     return False, "Invalid OTP code"

@@ -1,27 +1,27 @@
-import os
+import functools
 
-import bcrypt
-from flask import Blueprint, flash, redirect, render_template, request, url_for
-from flask_login import current_user, login_required
-from werkzeug.utils import secure_filename
-
-from flask import jsonify, current_app, request
-
-from data_source.bulletin_queries import (
-    get_all_bulletin,
-    get_connection,
-    get_sports_activity_by_id,
-    update_sports_activity,
-    update_sports_activity_details,
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
 )
-from data_source.social_feed_queries import get_posts_by_user
-from data_source.user_queries import get_user_by_id
-from domain.control import social_feed_management
+from flask_login import current_user, login_required
+
 from domain.control.profile_management import ProfileManagement
-from domain.control.social_feed_management import deletePost, editPost
-from domain.entity.sports_activity import SportsActivity
-from domain.entity.user import User
-from domain.control.otp_management import generate_otp_for_user, verify_and_enable_otp
+from domain.entity.forms import (
+    ActivityEditForm,
+    DeleteForm,
+    DisableOTPForm,
+    PostEditForm,
+    ProfileEditForm,
+)
+
+PROFILE_PAGE = "profile_bp.fetch_profile"
 
 profile_bp = Blueprint(
     "profile_bp",
@@ -31,236 +31,183 @@ profile_bp = Blueprint(
 )
 
 
-@profile_bp.route("/", methods=["GET"])
-@login_required
-def fetchProfile():
-    user_id = int(current_user.get_id())
-    user_data = get_user_by_id(user_id)
-    user = None
-    if isinstance(user_data, dict):
-        id_val = user_data.get("id")
-        if isinstance(id_val, int):
-            user_id_val = id_val
-        elif isinstance(id_val, str) and id_val.isdigit():
-            user_id_val = int(id_val)
-        else:
-            user_id_val = 0
-        user = User(
-            user_id_val,
-            str(user_data.get("name")) if user_data.get("name") is not None else "",
-            (
-                str(user_data.get("password"))
-                if user_data.get("password") is not None
-                else ""
-            ),
-            str(user_data.get("email")) if user_data.get("email") is not None else "",
-            str(user_data.get("role", "user")),
-            str(user_data.get("profile_picture", "")),
-            user_data.get("otp_secret"),  # <-- Add this
-            bool(int(user_data.get("otp_enabled", 0)))
-        )
-    user_posts = get_posts_by_user(user.get_name()) if user else []
-    user_id_str = str(user.get_id()) if user else ""
+def user_required(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if current_user.role != "user":
+            return redirect(url_for("admin.bulletin_page"))
+        return func(*args, **kwargs)
 
-    # Fetch all activities and filter for hosted/joined
-    all_activities = get_all_bulletin()
-    hosted_activities = []
-    joined_only_activities = []
-    if all_activities:
-        for row in all_activities:
-            row = dict(row)  # Ensure row is a dict
-            activity = SportsActivity(
-                id=int(row.get("id", 0)),
-                user_id=int(row.get("user_id", 0)),
-                activity_name=str(row.get("activity_name", "")),
-                activity_type=str(row.get("activity_type", "")),
-                skills_req=str(row.get("skills_req", "")),
-                date=str(row.get("date", "")),
-                location=str(row.get("location", "")),
-                max_pax=int(row.get("max_pax", 0)),
-                user_id_list_join=row.get("user_id_list_join", None),
-            )
-            # Hosted: user_id matches current user
-            if activity.user_id == user_id:
-                hosted_activities.append(activity)
-            # Joined: user_id is in join list, but not the host
-            else:
-                joined_ids = [
-                    uid.strip()
-                    for uid in (activity.user_id_list_join or "").split(",")
-                    if uid.strip()
-                ]
-                if str(user_id) in joined_ids:
-                    joined_only_activities.append(activity)
+    return wrapper
+
+
+@profile_bp.route("/", methods=["GET", "POST"])
+@login_required
+@user_required
+def fetch_profile():
+    user_id = int(current_user.get_id())
+    profile_manager = ProfileManagement()
+    profile_manager.set_user_activities(user_id)
+    hosted_activities, joined_only_activities = (
+        profile_manager.get_user_activities_display_data()
+    )
+    user = profile_manager.get_user_profile(user_id)
+    user_posts = profile_manager.get_user_posts(user_id)
+    form = ProfileEditForm(obj=user)
+
+    if request.method == "POST" and form.validate_on_submit():
+        profile_manager.update_profile_full(user_id, form)
+        flash("Profile updated successfully.", "success")
+        return redirect(url_for(PROFILE_PAGE))
+    elif request.method == "POST" and not form.validate_on_submit():
+        for field, field_errors in form.errors.items():
+            for error in field_errors:
+                flash(f"{field.capitalize()}: {error}", "error")
+        return redirect(url_for(PROFILE_PAGE))
+
     return render_template(
         "profile/profile.html",
         user=user,
         posts=user_posts,
         hosted_activities=hosted_activities,
         joined_only_activities=joined_only_activities,
+        profile_form=form,
+        activity_form=ActivityEditForm(),
+        post_form=PostEditForm(),
+        delete_form=DeleteForm(),
+        disable_otp_form=DisableOTPForm(),
     )
-
-
-@profile_bp.route("/", methods=["POST"])
-@login_required
-def editProfile():
-    user_id = int(current_user.get_id())
-    name = request.form["name"]
-    password = request.form["password"]
-    profile_manager = ProfileManagement()
-    profile_picture_url = None
-    remove_picture = request.form.get("remove_profile_picture") == "on"
-    # Handle file upload
-    if (
-        "profile_picture" in request.files
-        and request.files["profile_picture"].filename != ""
-    ):
-        file = request.files["profile_picture"]
-        filename = secure_filename(file.filename)
-        image_path = os.path.join(
-            "presentation", "static", "images", "profile", filename
-        )
-        os.makedirs(os.path.dirname(image_path), exist_ok=True)
-        file.save(image_path)
-        profile_picture_url = f"/static/images/profile/{filename}"
-    elif remove_picture:
-        profile_picture_url = ""
-    # Password logic
-    if password:
-        hashed_password = bcrypt.hashpw(
-            password.encode("utf-8"), bcrypt.gensalt()
-        ).decode("utf-8")
-        if profile_picture_url is not None:
-            result = profile_manager.updateProfile(
-                user_id, name, hashed_password, profile_picture_url
-            )
-        else:
-            result = profile_manager.updateProfile(user_id, name, hashed_password)
-    else:
-        user_data = get_user_by_id(user_id)
-        current_password = (
-            user_data["password"]
-            if isinstance(user_data, dict) and "password" in user_data
-            else ""
-        )
-        if profile_picture_url is not None:
-            result = profile_manager.updateProfile(
-                user_id, name, current_password, profile_picture_url
-            )
-        else:
-            result = profile_manager.updateProfile(user_id, name, current_password)
-    return redirect(url_for("profile_bp.fetchProfile"))
-
-
-@profile_bp.route("/leave_activity/<int:activity_id>", methods=["POST"])
-@login_required
-def leave_activity(activity_id):
-    user_id = str(current_user.get_id())
-    activity = get_sports_activity_by_id(activity_id)
-    if not activity or not activity.get("user_id_list_join"):
-        flash("Activity not found or you are not a participant.", "danger")
-        return redirect(url_for("profile_bp.fetchProfile"))
-    joined_ids = [
-        uid.strip() for uid in activity["user_id_list_join"].split(",") if uid.strip()
-    ]
-    if user_id in joined_ids:
-        joined_ids.remove(user_id)
-        new_join_list = ",".join(joined_ids)
-        update_sports_activity(activity_id, new_join_list)
-        flash("You have left the activity.", "success")
-    else:
-        flash("You are not a participant in this activity.", "warning")
-    return redirect(url_for("profile_bp.fetchProfile") + "#activitiesSection")
 
 
 @profile_bp.route("/edit_activity/<int:activity_id>", methods=["POST"])
 @login_required
+@user_required
 def edit_activity(activity_id):
     user_id = int(current_user.get_id())
-    activity = get_sports_activity_by_id(activity_id)
-    if not activity or int(activity["user_id"]) != user_id:
-        flash("You are not authorized to edit this activity.", "danger")
-        return redirect(url_for("profile_bp.fetchProfile"))
-    # Get new details from form
-    activity_name = request.form["activity_name"]
-    activity_type = request.form["activity_type"]
-    skills_req = request.form["skills_req"]
-    date = request.form["date"]
-    location = request.form["location"]
-    max_pax = request.form["max_pax"]
-    user_id_list_join = activity.get("user_id_list_join", "")
-    # Update the activity using the data source function
-    update_sports_activity_details(
-        activity_id,
-        activity_name,
-        activity_type,
-        skills_req,
-        date,
-        location,
-        max_pax,
-        user_id_list_join,
-    )
-    flash("Activity updated successfully.", "success")
-    return redirect(url_for("profile_bp.fetchProfile") + "#activitiesSection")
+    form = ActivityEditForm()
+    profile_manager = ProfileManagement()
+    success, message = profile_manager.edit_activity(user_id, activity_id, form)
+    if success:
+        flash(message, "success")
+    else:
+        flash(message, "error")
+    return redirect(url_for(PROFILE_PAGE) + "#activitiesSection")
 
 
 @profile_bp.route("/edit_post/<int:post_id>", methods=["POST"])
 @login_required
+@user_required
 def edit_post(post_id):
     user_id = int(current_user.get_id())
-    updated_content = request.form["content"]
-    remove_image = request.form.get("remove_image") == "on"
-    success = editPost(user_id, post_id, updated_content, remove_image)
+    form = PostEditForm()
+    profile_manager = ProfileManagement()
+    success, message = profile_manager.edit_post(user_id, post_id, form)
     if success:
-        flash("Post updated successfully.", "success")
+        flash(message, "success")
     else:
-        flash("Failed to update post.", "danger")
-    return redirect(url_for("profile_bp.fetchProfile") + "#feedSection")
+        flash(message, "error")
+    return redirect(url_for(PROFILE_PAGE) + "#feedSection")
+
+
+@profile_bp.route("/leave_activity/<int:activity_id>", methods=["POST"])
+@login_required
+@user_required
+def leave_activity(activity_id):
+    user_id = int(current_user.get_id())
+    profile_manager = ProfileManagement()
+    success, message = profile_manager.leave_activity(user_id, activity_id)
+    if success:
+        flash(message, "success")
+    else:
+        flash(message, "error")
+    return redirect(url_for(PROFILE_PAGE) + "#activitiesSection")
 
 
 @profile_bp.route("/delete_post/<int:post_id>", methods=["POST"])
 @login_required
+@user_required
 def delete_post(post_id):
     user_id = int(current_user.get_id())
-    success = deletePost(user_id, post_id)
+    profile_manager = ProfileManagement()
+    success, message = profile_manager.delete_post(user_id, post_id)
     if success:
-        flash("Post deleted successfully.", "success")
+        flash(message, "success")
     else:
-        flash("Failed to delete post.", "danger")
-    return redirect(url_for("profile_bp.fetchProfile") + "#feedSection")
+        flash(message, "error")
+    return redirect(url_for(PROFILE_PAGE) + "#feedSection")
+
+
+@profile_bp.route("/joined_users/<int:activity_id>", methods=["GET"])
+@login_required
+@user_required
+def get_joined_users(activity_id):
+    profile_manager = ProfileManagement()
+    users = profile_manager.get_joined_user_names(activity_id)
+    return jsonify(users)
+
 
 @profile_bp.route("/generate_otp", methods=["POST"])
 @login_required
+@user_required
 def generate_otp():
     try:
         user_id = int(current_user.get_id())
-        otp_data, error = generate_otp_for_user(user_id)
-        if error:
-            return jsonify({'status': 'error', 'message': error}), 400
-        return jsonify({'status': 'success', 'qr': otp_data["qr"], 'secret': otp_data["secret"]})
+        profile_manager = ProfileManagement()
+        otp_data, error = profile_manager.generate_otp(user_id)
+        if error or not otp_data:
+            return (
+                jsonify(
+                    {
+                        "status": "error",
+                        "message": error or "Failed to generate OTP data",
+                    }
+                ),
+                400,
+            )
+        return jsonify(
+            {"status": "success", "qr": otp_data["qr"], "secret": otp_data["secret"]}
+        )
     except Exception as e:
         current_app.logger.error(f"OTP generation error: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Failed to generate OTP setup'}), 500
+        return (
+            jsonify({"status": "error", "message": "Failed to generate OTP setup"}),
+            500,
+        )
+
 
 @profile_bp.route("/verify_otp", methods=["POST"])
 @login_required
+@user_required
 def verify_otp():
     try:
         user_id = int(current_user.get_id())
+        if not request.json or "otp_code" not in request.json:
+            return jsonify({"status": "error", "message": "OTP code not provided"}), 400
         otp_code = request.json.get("otp_code")
-        success, error = verify_and_enable_otp(user_id, otp_code)
+        profile_manager = ProfileManagement()
+        success, error = profile_manager.verify_otp(user_id, otp_code)
         if success:
-            return jsonify({'status': 'success'})
+            return jsonify({"status": "success"})
         else:
-            return jsonify({'status': 'error', 'message': error}), 400
+            return jsonify({"status": "error", "message": error}), 400
     except Exception as e:
         current_app.logger.error(f"OTP verification error: {str(e)}")
-        return jsonify({'status': 'error', 'message': 'Failed to verify OTP'}), 500
+        return jsonify({"status": "error", "message": "Failed to verify OTP"}), 500
 
-@profile_bp.route("/check_otp_status")
+
+@profile_bp.route("/disable_otp", methods=["POST"])
 @login_required
-def check_otp_status():
-    user_id = int(current_user.get_id())
-    user_data = get_user_by_id(user_id)
-    otp_enabled = user_data.get("otp_enabled", False) if user_data else False
-    return jsonify({'otp_enabled': bool(otp_enabled)})
+@user_required
+def disable_otp():
+    form = DisableOTPForm()
+    if form.validate_on_submit():
+        user_id = int(current_user.get_id())
+        profile_manager = ProfileManagement()
+        success = profile_manager.disable_otp(user_id)
+        if success:
+            flash("OTP has been disabled.", "success")
+        else:
+            flash("Failed to disable OTP.", "danger")
+    else:
+        flash("Invalid form submission.", "danger")
+    return redirect(url_for("profile_bp.fetch_profile"))

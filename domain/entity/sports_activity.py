@@ -64,7 +64,6 @@ class SportsActivity:
     def set_max_pax(self, max_pax: int):
         self.max_pax = max_pax
 
-    # def set_user_id_list_join(self, user_id_list_join: str): self.user_id_list_join = user_id_list_join
     def set_user_id_list_join(self, user_id):
         existing = self.user_id_list_join or ""
         ids = existing.split(",") if existing else []

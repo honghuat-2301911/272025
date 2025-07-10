@@ -4,13 +4,17 @@
     box-sizing: border-box;
 }
 
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
 body {
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: white;
     min-height: 100vh;
     padding-top: 64px;
     color: #0F1419;
-    margin: 0;
 }
 
 .container {
@@ -57,8 +61,6 @@ body {
     width: 100%;
 }
 
-
-
 /* Modal Styles */
 .modal {
     display: none;
@@ -90,7 +92,7 @@ body {
     align-items: stretch;
     animation: slideUp 0.3s;
 }
-.close-modal {
+.close, .close-modal {
     position: absolute;
     top: 14px;
     right: 20px;
@@ -100,9 +102,44 @@ body {
     font-weight: bold;
     transition: color 0.2s;
 }
-.close-modal:hover {
+.close:hover, .close-modal:hover {
     color: #ff5858;
 }
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.flash-message {
+    padding: 16px 18px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 1.08em;
+    font-weight: 500;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.08);
+    background: #fff7f7;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+.flash-message.success {
+    background: #e6f9f0;
+
+    border: 1px solid #6ee7b7;
+}
+.flash-message.error {
+    background: #fff7f7;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+@media (max-width: 900px) {
+    .modal-content {
+        padding: 18px 8px;
+    }
+}
+@media (max-width: 480px) {
+    .modal-content { padding: 10px 2px; }
+}
+
 .profile-edit-form label {
     font-weight: 500;
     color: #23272a;
@@ -201,6 +238,157 @@ body {
     }
 }
 
+@media (max-width: 900px) {
+    .profile-main-row {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 18px;
+        padding: 18px 0;
+    }
+    .card, .modal-content {
+        padding: 18px 8px;
+        max-width: 99vw;
+        font-size: 1em;
+    }
+    .profile-col, .posts-col, .activities-col {
+        max-width: 100vw;
+        min-width: unset;
+        padding: 0 2px;
+    }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 0 6px;
+        max-width: 100vw;
+        box-sizing: border-box;
+    }
+    .card {
+        max-width: 98vw;
+        width: 100%;
+        margin: 0 auto;
+        border-radius: 10px;
+        box-sizing: border-box;
+    }
+    .profile-main-row {
+        padding: 0 2px;
+        border-radius: 10px;
+        gap: 12px;
+    }
+    .card, .modal-content {
+        padding: 8px 2vw 8px 2vw;
+        font-size: 0.97em;
+        max-width: 98vw;
+        border-radius: 10px;
+    }
+    .profile-col, .posts-col, .activities-col {
+        padding: 0;
+        max-width: 100vw;
+    }
+    .profile-header {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 8px;
+        width: 100%;
+    }
+    .profile-avatar {
+        width: 56px !important;
+        height: 56px !important;
+        margin: 0 auto 8px auto !important;
+        display: block;
+    }
+    .profile-header-info {
+        align-items: center !important;
+        text-align: center !important;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+    .profile-header-info h2, .profile-header-info p {
+        font-size: 1em !important;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+    .profile-details p {
+        font-size: 0.97em;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+    .profile-edit-form input[type="text"],
+    .profile-edit-form input[type="email"],
+    .profile-edit-form input[type="password"],
+    .profile-edit-form input[type="file"] {
+        width: 100%;
+        font-size: 0.97em;
+        padding: 8px 6px;
+        box-sizing: border-box;
+    }
+    .profile-edit-form label {
+        font-size: 0.97em;
+    }
+    .profile-edit-form button[type="submit"] {
+        width: 100%;
+        font-size: 0.97em;
+        padding: 10px 0;
+    }
+    .profile-nav {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        font-size: 0.97em;
+        padding-bottom: 2px;
+    }
+    .profile-nav a {
+        display: inline-block;
+        min-width: 90px;
+        padding: 8px 10px;
+        font-size: 0.97em;
+    }
+    .profile-feed {
+        max-width: 100vw;
+        padding: 0 2vw;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 2px;
+    }
+    .card {
+        max-width: 98vw;
+        width: 100%;
+        margin: 0 auto;
+        border-radius: 8px;
+    }
+    .profile-header-info h2, .profile-header-info p {
+        font-size: 0.93em !important;
+    }
+    .profile-avatar {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    .profile-nav a {
+        min-width: 70px;
+        font-size: 0.92em;
+        padding: 6px 4px;
+    }
+    .profile-edit-form input[type="text"],
+    .profile-edit-form input[type="email"],
+    .profile-edit-form input[type="password"],
+    .profile-edit-form input[type="file"] {
+        font-size: 0.93em;
+        padding: 7px 4px;
+    }
+    .profile-edit-form label {
+        font-size: 0.93em;
+    }
+    .profile-edit-form button[type="submit"] {
+        font-size: 0.93em;
+        padding: 8px 0;
+    }
+}
+
 .profile-posts-section {
     width: 100%;
     max-width: 600px;
@@ -219,14 +407,15 @@ body {
     right: 50%;
     margin-left: -50vw;
     margin-right: -50vw;
-    background: #f5f5f5;
-    padding: 32px 0 16px 0;
+    background: linear-gradient(135deg, #fff6f6 0%, #ffeaea 100%);
+    padding: 48px 0 32px 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
     margin-top: -64px;
     padding-top: 96px;
+    min-height: 220px;
 }
 .profile-header {
     display: flex;
@@ -272,8 +461,13 @@ body {
     border-bottom: 3px solid #ff5858;
 }
 .profile-feed {
-    max-width: 2000px;
+    max-width: 600px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
     padding: 0 16px;
 }
 .profile-feed h3 {
@@ -281,6 +475,17 @@ body {
     font-size: 1.3em;
     font-weight: 700;
 }
+.activity-group {
+    margin-bottom: 32px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.activity-group:last-child {
+    margin-bottom: 0;
+}
+
 .profile-feed-item {
     display: flex;
     align-items: flex-start;
@@ -288,9 +493,25 @@ body {
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     padding: 18px 20px;
-    margin-bottom: 18px;
     gap: 18px;
     position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-bottom: 18px;
+    box-sizing: border-box;
+}
+@media (max-width: 650px) {
+    .profile-feed-item {
+        max-width: 98vw;
+        width: 100%;
+        margin-bottom: 14px;
+        padding: 14px 6px;
+    }
+    .activity-group {
+        width: 100%;
+        padding: 0;
+    }
 }
 .feed-avatar {
     width: 48px;
@@ -304,6 +525,8 @@ body {
 .feed-content p {
     margin: 0 0 8px 0;
     font-size: 1.08em;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 .feed-timestamp {
     color: #888;
@@ -335,172 +558,518 @@ body {
     margin-left: auto;
     margin-right: 0;
     align-self: flex-start;
-} 
-
-        /* Simple modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: auto;
-            background: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background: #fff;
-            margin: 8% auto;
-            padding: 32px 24px;
-            border-radius: 10px;
-            max-width: 400px;
-            box-shadow: 0 2px 16px rgba(0,0,0,0.15);
-            position: relative;
-        }
-        .close-modal {
-            position: absolute;
-            top: 12px;
-            right: 18px;
-            font-size: 1.5em;
-            color: #888;
-            cursor: pointer;
-        }
-
-#editPostForm label {
-    font-weight: 500;
-    color: #23272a;
-    margin-top: 10px;
-    margin-bottom: 2px;
-}
-#editPostForm textarea {
-    padding: 8px;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    font-size: 1em;
-    margin-bottom: 10px;
-    background: #fafafa;
-    transition: border 0.2s;
-    resize: vertical;
-}
-#editPostForm textarea:focus {
-    border: 1.5px solid #ff5858;
-    outline: none;
-}
-#editPostForm button[type="submit"] {
-    background: linear-gradient(135deg, #ff5858 0%, #f857a6 100%);
-    color: #fff;
-    border: none;
-    border-radius: 24px;
-    font-size: 1.1em;
-    font-weight: 700;
-    padding: 12px 0;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.10);
-    cursor: pointer;
-    letter-spacing: 0.5px;
-    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-    outline: none;
-    display: block;
-    width: 100%;
-    margin-top: 18px;
-}
-#editPostForm button[type="submit"]:hover, #editPostForm button[type="submit"]:focus {
-    background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
-    transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
 }
 
-.delete-confirm-btn {
-    background: linear-gradient(135deg, #ff5858 0%, #f857a6 100%);
-    color: #fff;
-    border: none;
-    border-radius: 24px;
-    font-size: 1.1em;
-    font-weight: 700;
-    padding: 12px 0;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.10);
+/* View List Modal*/
+#viewListModal.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background: rgba(0,0,0,0.4);
+    align-items: center;
+    justify-content: center;
+}
+#viewListModal.modal.show {
+    display: flex;
+}
+#viewListModal .modal-content {
+    background: #fff;
+    margin: auto;
+    padding: 40px 32px 32px 32px;
+    border-radius: 18px;
+    max-width: 400px;
+    width: 90vw;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+#viewListModal .close-modal {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-size: 1.7em;
+    color: #b91c1c;
     cursor: pointer;
-    letter-spacing: 0.5px;
-    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-    outline: none;
-    display: block;
-    width: 140px;
+    font-weight: bold;
+    transition: color 0.2s;
 }
-.delete-confirm-btn:hover, .delete-confirm-btn:focus {
-    background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
-    transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
-}
-.cancel-confirm-btn {
-    background: #f5f5f5;
-    color: #23272a;
-    border: none;
-    border-radius: 24px;
-    font-size: 1.1em;
-    font-weight: 700;
-    padding: 12px 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    cursor: pointer;
-    letter-spacing: 0.5px;
-    transition: background 0.2s, color 0.2s;
-    outline: none;
-    display: block;
-    width: 140px;
-}
-.cancel-confirm-btn:hover, .cancel-confirm-btn:focus {
-    background: #ececec;
+#viewListModal .close-modal:hover {
     color: #ff5858;
 }
+#viewListModal h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 1.3em;
+    text-align: center;
+    color: #222;
+}
+#joinedUsersList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 260px;
+    overflow-y: auto;
+}
+#joinedUsersList li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 1.08em;
+    color: #333;
+    text-align: left;
+}
+#joinedUsersList li:last-child {
+    border-bottom: none;
+}
 
-.delete-modal-actions {
-    display: flex;
-    gap: 16px;
-    margin-top: 24px;
-    justify-content: center;
-    align-items: center;
+/* Ensure all text containers wrap and don't overflow */
+.profile-header-info, .profile-details, .card, .modal-content, .profile-nav, .profile-header-info h2, .profile-header-info p {
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.profile-page {
+    padding-top: 80px;
+}
+
+@media (max-width: 600px) {
+    .container, .card, .modal-content {
+        max-width: 100vw !important;
+        width: 100vw !important;
+        box-sizing: border-box;
+    }
+    .icon-btn {
+        margin-left: 0 !important;
+    }
+    .profile-nav a {
+        min-width: 60px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .container, .card, .modal-content {
+        max-width: 100vw !important;
+        width: 100vw !important;
+        box-sizing: border-box;
+    }
+    .icon-btn {
+        margin-left: 0 !important;
+    }
+    .profile-nav a {
+        min-width: 50px !important;
+    }
+}
+
+@media (max-width: 650px) {
+    .profile-banner {
+        padding: 36px 0 24px 0;
+        padding-top: 80px;
+        min-height: 180px;
+    }
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    .profile-avatar {
+        width: 64px !important;
+        height: 64px !important;
+    }
+    .profile-header-info h2 {
+        font-size: 1.2em !important;
+    }
+    .profile-header-info p {
+        font-size: 1em !important;
+    }
+}
+@media (max-width: 480px) {
+    .profile-banner {
+        padding: 24px 0 16px 0;
+        padding-top: 64px;
+        min-height: 120px;
+    }
+    .profile-avatar {
+        width: 48px !important;
+        height: 48px !important;
+    }
+    .profile-header-info h2 {
+        font-size: 1em !important;
+    }
+    .profile-header-info p {
+        font-size: 0.95em !important;
+    }
+}
+
+#editActivityForm input[type="text"],
+#editActivityForm input[type="number"],
+#editActivityForm input[type="datetime-local"],
+#editActivityForm select {
     width: 100%;
-}
-
-#editActivityForm > div {
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1em;
     margin-bottom: 14px;
-}
-#editActivityForm label {
-    font-weight: 600;
-    margin-bottom: 4px;
-    display: block;
+    background: #fafafa;
+    transition: border 0.2s, box-shadow 0.2s;
+    font-family: inherit;
     color: #23272a;
 }
-#editActivityForm input[type="text"],
-#editActivityForm input[type="number"] {
-    padding: 8px;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    font-size: 1em;
-    background: #fafafa;
-    width: 100%;
-    margin-top: 2px;
-    transition: border 0.2s;
-}
-#editActivityForm input:focus {
+#editActivityForm input[type="text"]:focus,
+#editActivityForm input[type="number"]:focus,
+#editActivityForm input[type="datetime-local"]:focus,
+#editActivityForm select:focus {
     border: 1.5px solid #ff5858;
     outline: none;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.08);
+}
+#editActivityForm input[type="number"]::-webkit-inner-spin-button,
+#editActivityForm input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+#editActivityForm input[type="number"] {
+    appearance: textfield;
 }
 
-.profile-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-family: inherit;
-    margin-top: 4px;
-    margin-bottom: 12px;
-    box-sizing: border-box;
-    background: #f9f9f9;
-    transition: border-color 0.2s;
+/* Custom modal-content styles for edit modals */
+#editActivityModal .modal-content {
+    max-width: 600px;
+    padding: 48px 40px 40px 40px;
 }
-.profile-input:focus {
-    border-color: #007bff;
+#editPostModal .modal-content {
+    max-width: 500px;
+    padding: 40px 32px 32px 32px;
+}
+#editProfileModal .modal-content {
+    max-width: 500px;
+    padding: 40px 32px 32px 32px;
+}
+@media (max-width: 600px) {
+    #editActivityModal .modal-content,
+    #editPostModal .modal-content,
+    #editProfileModal .modal-content {
+        max-width: 98vw;
+        width: 98vw;
+        padding: 16px 6px 12px 6px;
+    }
+}
+@media (max-width: 480px) {
+    #editActivityModal .modal-content,
+    #editPostModal .modal-content,
+    #editProfileModal .modal-content {
+        max-width: 100vw;
+        width: 100vw;
+        padding: 10px 2px;
+    }
+}
+
+/* OTP Modal & Card Buttons */
+#verify2faBtn,
+#done2faBtn,
+#enable2faBtn {
+    width: 100%;
+    padding: 12px 0;
+    margin-top: 18px;
+    border: none;
+    border-radius: 24px;
+    font-size: 1.1em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff5858 0%, #f857a6 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.10);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    outline: none;
+    display: block;
+}
+#verify2faBtn:hover,
+#done2faBtn:hover,
+#enable2faBtn:hover,
+#verify2faBtn:focus,
+#done2faBtn:focus,
+#enable2faBtn:focus {
+    background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
+}
+/* OTP Input Style */
+#otpCodeInput {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1em;
+    margin-bottom: 14px;
+    background: #fafafa;
+    transition: border 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    color: #23272a;
+    box-sizing: border-box;
+}
+#otpCodeInput:focus {
+    border: 1.5px solid #ff5858;
     outline: none;
     background: #fff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.08);
+}
+
+/* Disable 2FA Button Style */
+.btn-danger[type="submit"] {
+    width: 100%;
+    padding: 12px 0;
+    margin-top: 18px;
+    border: none;
+    border-radius: 24px;
+    font-size: 1.1em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff5858 0%, #b91c1c 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.10);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    outline: none;
+    display: block;
+}
+.btn-danger[type="submit"]:hover,
+.btn-danger[type="submit"]:focus {
+    background: linear-gradient(135deg, #b91c1c 0%, #ff5858 100%);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
+}
+
+#enable2faBtn {
+    width: 100%;
+    padding: 12px 0;
+    margin-top: 18px;
+    border: none;
+    border-radius: 24px;
+    font-size: 1.1em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.10);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    outline: none;
+    display: block;
+}
+#enable2faBtn:hover,
+#enable2faBtn:focus {
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.18);
+}
+
+#leaveActivityModal.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background: rgba(0,0,0,0.4);
+    align-items: center;
+    justify-content: center;
+}
+#leaveActivityModal.modal.show {
+    display: flex;
+}
+#leaveActivityModal .modal-content {
+    background: #fff;
+    margin: auto;
+    padding: 40px 32px 32px 32px;
+    border-radius: 18px;
+    max-width: 400px;
+    width: 90vw;
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.18);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    animation: slideUp 0.3s;
+}
+#leaveActivityModal .close-modal {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-size: 1.7em;
+    color: #b91c1c;
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+#leaveActivityModal .close-modal:hover {
+    color: #ff5858;
+}
+#leaveActivityModal h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 1.3em;
+    text-align: center;
+    color: #222;
+}
+#leaveActivityModal .delete-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 24px;
+}
+#leaveActivityModal .delete-confirm-btn, #leaveActivityModal .cancel-confirm-btn {
+    flex: 1 1 0;
+    padding: 12px 0;
+    border: none;
+    border-radius: 24px;
+    font-size: 1.1em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff5858 0%, #f857a6 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.10);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    outline: none;
+    margin: 0 4px;
+}
+#leaveActivityModal .cancel-confirm-btn {
+    background: #e5e7eb;
+    color: #222;
+}
+#leaveActivityModal .delete-confirm-btn:hover, #leaveActivityModal .delete-confirm-btn:focus {
+    background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
+}
+#leaveActivityModal .cancel-confirm-btn:hover, #leaveActivityModal .cancel-confirm-btn:focus {
+    background: #d1d5db;
+}
+@media (max-width: 600px) {
+    #leaveActivityModal .modal-content {
+        max-width: 98vw;
+        width: 98vw;
+        padding: 16px 6px 12px 6px;
+    }
+}
+@media (max-width: 480px) {
+    #leaveActivityModal .modal-content {
+        max-width: 100vw;
+        width: 100vw;
+        padding: 10px 2px;
+    }
+}
+
+#deletePostModal.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background: rgba(0,0,0,0.4);
+    align-items: center;
+    justify-content: center;
+}
+#deletePostModal.modal.show {
+    display: flex;
+}
+#deletePostModal .modal-content {
+    background: #fff;
+    margin: auto;
+    padding: 40px 32px 32px 32px;
+    border-radius: 18px;
+    max-width: 400px;
+    width: 90vw;
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.18);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    animation: slideUp 0.3s;
+}
+#deletePostModal .close-modal {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-size: 1.7em;
+    color: #b91c1c;
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+#deletePostModal .close-modal:hover {
+    color: #ff5858;
+}
+#deletePostModal h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 1.3em;
+    text-align: center;
+    color: #222;
+}
+#deletePostModal .delete-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 24px;
+}
+#deletePostModal .delete-confirm-btn, #deletePostModal .cancel-confirm-btn {
+    flex: 1 1 0;
+    padding: 12px 0;
+    border: none;
+    border-radius: 24px;
+    font-size: 1.1em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff5858 0%, #f857a6 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.10);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    outline: none;
+    margin: 0 4px;
+}
+#deletePostModal .cancel-confirm-btn {
+    background: #e5e7eb;
+    color: #222;
+}
+#deletePostModal .delete-confirm-btn:hover, #deletePostModal .delete-confirm-btn:focus {
+    background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.18);
+}
+#deletePostModal .cancel-confirm-btn:hover, #deletePostModal .cancel-confirm-btn:focus {
+    background: #d1d5db;
+}
+@media (max-width: 600px) {
+    #deletePostModal .modal-content {
+        max-width: 98vw;
+        width: 98vw;
+        padding: 16px 6px 12px 6px;
+    }
+}
+@media (max-width: 480px) {
+    #deletePostModal .modal-content {
+        max-width: 100vw;
+        width: 100vw;
+        padding: 10px 2px;
+    }
+}
+
+/* Prevent resizing of textarea in Edit Post Modal */
+#editPostModal textarea {
+    resize: none;
 }
